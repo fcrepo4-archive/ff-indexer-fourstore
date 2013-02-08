@@ -1,6 +1,5 @@
 package org.fcrepo.futures.indexer.fourstore;
 
-import java.io.IOException;
 import java.io.StringReader;
 import java.util.concurrent.Callable;
 
@@ -16,9 +15,8 @@ import org.apache.abdera.Abdera;
 import org.apache.abdera.model.Document;
 import org.apache.abdera.model.Entry;
 import org.apache.abdera.parser.Parser;
-import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.ClientProtocolException;
+import org.apache.http.StatusLine;
 
 public class Indexer implements Callable<Object> {
 	private ConnectionFactory m_connectionFactory;
@@ -51,11 +49,11 @@ public class Indexer implements Callable<Object> {
 						String dsid = pid + "/" + entry.getContent();
 						String rel = "info:fedora/fedora-system:hasDatastream";
 						try {
-							HttpResponse response = m_store.add(m_graphName, pid, rel, dsid);
-							if (response.getStatusLine().getStatusCode() == HttpStatus.SC_CREATED){
+							StatusLine response = m_store.add(m_graphName, pid, rel, dsid);
+							if (response.getStatusCode() == HttpStatus.SC_CREATED){
 							    System.out.println(String.format("added %s:<%s><%s><%s>",m_graphName, pid,  rel, dsid));
 							} else {
-								System.out.println("WARN: unexpected response code for add: " + response.getStatusLine());
+								System.out.println("WARN: unexpected response code for add: " + response);
 							}
 						} catch (Exception e) {
 							System.out.println("ERROR: " + e.toString());
@@ -66,11 +64,11 @@ public class Indexer implements Callable<Object> {
 						String dsid = pid + "/" + entry.getContent();
 						String rel = "info:fedora/fedora-system:hasDatastream";
 						try {
-							HttpResponse response = m_store.delete(m_graphName, pid, rel, dsid);
-							if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT){
+							StatusLine response = m_store.delete(m_graphName, pid, rel, dsid);
+							if (response.getStatusCode() == HttpStatus.SC_NO_CONTENT){
 								System.out.println(String.format("deleted %s:<%s><%s><%s>",m_graphName, pid,  rel, dsid));
 							} else {
-								System.out.println("WARN: unexpected response code for delete: " + response.getStatusLine());
+								System.out.println("WARN: unexpected response code for delete: " + response);
 							}
 						} catch (Exception e) {
 							System.out.println("ERROR: " + e.toString());

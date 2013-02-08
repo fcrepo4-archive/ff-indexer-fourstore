@@ -7,15 +7,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
+import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
@@ -78,13 +76,12 @@ public class FourstoreTests {
 	@Test
 	public void testAdd() {
 		try {
-			HttpResponse response = testObject.add(test_graph, test_subject, test_predicate, test_object);
-			String body = dumpToString(response.getEntity().getContent());
-			if (response.getStatusLine().getStatusCode() != 200) {
-				fail("unexpected http status for add: " + response.getStatusLine() + " " + response.getStatusLine().getReasonPhrase());
+			StatusLine response = testObject.add(test_graph, test_subject, test_predicate, test_object);
+			if (response.getStatusCode() != 200) {
+				fail("unexpected http status for add: " + response + " " + response.getReasonPhrase());
 			}
 			// get the data
-			body = getTheData();
+			String body = getTheData();
 			assertTrue(body.indexOf(test_subject) > -1);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -108,18 +105,16 @@ public class FourstoreTests {
 	@Test
 	public void testDelete() {
 		try {
-			HttpResponse response = testObject.add(test_graph, test_subject, test_predicate, test_object);
-			String body = dumpToString(response.getEntity().getContent());
-			if (response.getStatusLine().getStatusCode() != 200) {
-				fail("unexpected http status for add: " + response.getStatusLine().getStatusCode());
+			StatusLine response = testObject.add(test_graph, test_subject, test_predicate, test_object);
+			if (response.getStatusCode() != 200) {
+				fail("unexpected http status for add: " + response.getStatusCode());
 			}
 			response = testObject.delete(test_graph, test_subject, test_predicate, test_object);
-			body = dumpToString(response.getEntity().getContent());
-			if (response.getStatusLine().getStatusCode() != 200) {
-				fail("unexpected http status for delete: " + response.getStatusLine().getStatusCode());
+			if (response.getStatusCode() != 200) {
+				fail("unexpected http status for delete: " + response.getStatusCode());
 			}
 			// get the data
-			body = getTheData();
+			String body = getTheData();
 			assertTrue(body.indexOf(test_subject) == -1);
 		} catch (Exception e) {
 			e.printStackTrace();

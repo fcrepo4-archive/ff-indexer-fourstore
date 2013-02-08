@@ -22,27 +22,40 @@ public class FourStore {
 	}
 	
 	public FourStore(String host, int port) {
-		m_baseUri = "http://" + host + ":" + port + "/data/";
+		m_baseUri = "http://" + host + ":" + port + "/";
 	}
 	private HttpClient client = new DefaultHttpClient();
-    public HttpResponse add(String graph, String subject, String predicate, String object) throws ClientProtocolException, IOException {
-    	HttpPost request = new HttpPost(m_baseUri + graph);
-    	UrlEncodedFormEntity entity = getEntity(graph, subject, predicate, object);
+    public HttpResponse add(String graph, String subject, String predicate, String object) 
+    		throws ClientProtocolException, IOException {
+    	HttpPost request = new HttpPost(m_baseUri + "update/");
+    	UrlEncodedFormEntity entity = getAddEntity(graph, subject, predicate, object);
+    	System.out.println(request.getURI());
     	request.setEntity(entity);
-    	return client.execute(request);
+    	request.setHeader("Content-Type", "application/x-www-form-urlencoded");
+    	System.out.println(request.getFirstHeader("Content-Type"));
+    	HttpResponse response = client.execute(request);
+    	return response;
     }
     
-    public HttpResponse delete(String g, String s, String p, String o) throws ClientProtocolException, IOException {
-    	HttpDelete request = new HttpDelete(m_baseUri + getQuery(g, s, p, o));
-    	return client.execute(request);
+    public HttpResponse delete(String graph, String subject, String predicate, String object)
+    		throws ClientProtocolException, IOException {
+    	HttpPost request = new HttpPost(m_baseUri + "update/");
+    	System.out.println(request.getURI());
+    	UrlEncodedFormEntity entity = getDeleteEntity(graph, subject, predicate, object);
+    	request.setEntity(entity);
+    	request.setHeader("Content-Type", "application/x-www-form-urlencoded");
+    	HttpResponse response = client.execute(request);
+    	return response;
     }
     
-    private UrlEncodedFormEntity getEntity(String graph, String subject, String predicate, String object) {
+    private UrlEncodedFormEntity getPostAddEntity(String graph, String subject, String predicate, String object) {
     	try {
 	    	// but what if the object is a literal?
-	    	String message = String.format("<%s><%s><%s>", graph, subject, predicate, object);
+	    	String message = String.format("<%s> <%s> <%s> .", subject, predicate, object);
+	    	System.out.println(message);
 	    	NameValuePair[] pairs = new NameValuePair[]{new BasicNameValuePair("graph",graph),
-	    			                                   new BasicNameValuePair("data",message)};
+	    			                                   new BasicNameValuePair("data",message),
+	    			                                   new BasicNameValuePair("mime-type", "application/x-turtle")};
 	    	UrlEncodedFormEntity entity = new UrlEncodedFormEntity(Arrays.asList(pairs), "UTF-8");
 	    	return entity;
 		} catch (UnsupportedEncodingException e) {
@@ -51,13 +64,30 @@ public class FourStore {
 		}
     }
     
-    private String getQuery(String g, String s, String p, String o) {
+    private UrlEncodedFormEntity getAddEntity(String graph, String subject, String predicate, String object) {
     	try {
-    		g = URLEncoder.encode(g, "UTF-8");
-    		s = URLEncoder.encode(s, "UTF-8");
-    		p = URLEncoder.encode(p, "UTF-8");
-    		o = URLEncoder.encode(o, "UTF-8");
-    		return String.format("graph=%s&data=%s%s%s", g,s,p,o); 
+	    	// but what if the object is a literal?
+    		String format = "INSERT DATA { GRAPH <%s> { <%s> <%s> <%s> } }";
+    		String query = String.format(format, graph, subject, predicate, object);
+	    	System.out.println(query);
+	    	NameValuePair[] pairs = new NameValuePair[]{new BasicNameValuePair("update",query)};
+	    	UrlEncodedFormEntity entity = new UrlEncodedFormEntity(Arrays.asList(pairs), "UTF-8");
+	    	return entity;
+		} catch (UnsupportedEncodingException e) {
+			// hush you
+	    	return null;
+		}
+    }
+
+    private UrlEncodedFormEntity getDeleteEntity(String graph, String subject, String predicate, String object) {
+    	try {
+	    	// but what if the object is a literal?
+    		String format = "DELETE DATA { GRAPH <%s> { <%s> <%s> <%s> } }";
+    		String query = String.format(format, graph, subject, predicate, object);
+	    	System.out.println(query);
+	    	NameValuePair[] pairs = new NameValuePair[]{new BasicNameValuePair("update",query)};
+	    	UrlEncodedFormEntity entity = new UrlEncodedFormEntity(Arrays.asList(pairs), "UTF-8");
+	    	return entity;
 		} catch (UnsupportedEncodingException e) {
 			// hush you
 	    	return null;
